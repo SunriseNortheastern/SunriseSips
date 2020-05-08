@@ -125,7 +125,7 @@ def main():
         offset = None
         with open("offset.txt", "r") as file:
             offset = int(file.read())
-
+        
         # For every row we have not yet processed, add a subscriber:
         for row in values[offset:]:
             add_subscriber(
@@ -141,6 +141,13 @@ def main():
         # we have processed so far:
         with open("offset.txt", "w") as file:
             file.write(str(len(values)))
+        
+        # Notify the user if there were no new subscribers to process:
+        if offset == len(values):
+            print("No new subscribers to add")
+        # Otherwise, tell the user that we've finished adding subscribers:
+        else:
+            print("Finished adding subscribers")
 
 if __name__ == '__main__':
     main()
