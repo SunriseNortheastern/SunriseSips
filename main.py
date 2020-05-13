@@ -1,8 +1,7 @@
 import pickle
 import os.path
 from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+from google.oauth2 import service_account
 # Documentation: https://2.python-requests.org/en/master/
 import requests
 
@@ -37,7 +36,7 @@ def get_mailchimp_info():
         api_key = file.read()
     # Get the List ID of our Mailchimp audience:
     list_id = None
-    with open("list_id.txt", "r") as file:
+    with open("mailchimp_list_id.txt", "r") as file:
         list_id = file.read()
 
     return api_key, list_id
@@ -49,35 +48,19 @@ def get_google_info():
     - the spreadsheet ID of the Google Sheets
       containing all of the form responses
     """
-    creds = None
-    # The file token.pickle stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists("token.pickle"):
-        with open("token.pickle", "rb") as token:
-            creds = pickle.load(token)
-            
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                "credentials.json",
-                SCOPES
-            )
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open("token.pickle", "wb") as token:
-            pickle.dump(creds, token)
+    # Create the Credentials object using credentials.json:
+    creds = service_account.Credentials.from_service_account_file(
+        "google_credentials.json",
+        scopes=SCOPES
+    )
 
     # Get the ID of the Google Sheets containing the form responses:
-    with open("spreadsheet_id.txt", "r") as file:
+    with open("google_sheets_id.txt", "r") as file:
         spreadsheet_id = file.read()
 
     return creds, spreadsheet_id
 
-def add_subscriber(list_id, api_key, email_address, first_name="", last_name="", phone_number=""):
+def add_subscriber(api_key, list_id, email_address, first_name="", last_name="", phone_number=""):
     """
     Add a Mailchimp subscriber to the audience with the given list_id
     using the given api_key and other personal information.
@@ -116,7 +99,7 @@ def add_subscriber(list_id, api_key, email_address, first_name="", last_name="",
 
 def main():
     # Get relevant credentials:
-    api_key, list_id = get_mailchimp_info()
+    mailchimp_api_key, mailchimp_list_id = get_mailchimp_info()
     creds, spreadsheet_id = get_google_info()
     # Initialize Google Sheets API:
     service = build("sheets", "v4", credentials=creds)
@@ -129,7 +112,7 @@ def main():
     with open("offset.txt", "r") as file:
         offset = int(file.read())
     # Based off the offset, build the spreadsheet range we want to read:
-    spreadsheet_range = f"Form Responses 1!A{offset}:V{offset+100}"
+    spreadsheet_range = f"Form Responses 1!A{offset}:V{offset+MAX_ROWS}"
 
     # Get the values from the specified range in the spreadsheet:
     sheet = service.spreadsheets()
@@ -146,8 +129,8 @@ def main():
         # For every row we have not yet processed, add a subscriber:
         for row in values:
             add_subscriber(
-                list_id,
-                api_key,
+                mailchimp_api_key,
+                mailchimp_list_id,
                 email_address=row[8],
                 first_name=row[1],
                 last_name=row[2],

@@ -1,6 +1,4 @@
-credentials.json
-token.pickle
+google_credentials.json
+google_sheets_id.txt
 mailchimp_api_key.txt
-list_id.txt
-responses_sheet_id.txt
-spreadsheet_id.txt
+mailchimp_list_id.txt
