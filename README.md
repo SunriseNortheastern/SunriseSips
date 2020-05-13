@@ -12,11 +12,10 @@ pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-
 
 The following text files are included in this repo and do not contain privileged information:
  * `offset.txt` holds a single integer that represents the number of rows in the spreadsheet that has already been processed by this script.
- * `spreadsheet_range.txt` holds the range of values that we want to read from the spreadsheet
 
 The following text files are not included in this repo because they contain privileged information, but they are still necessary to run this script:
  * `credentials.json` holds the client ID and client secret obtained by [enabling the Google sheets API on the Quickstart page](https://developers.google.com/sheets/api/quickstart/python)
- * `api_key.txt` holds the Mailchimp API Key
+ * `mailchimp_api_key.txt` holds the Mailchimp API Key
  * `list_id.txt` holds the list ID for our Mailchimp audience
  * `spreadsheet_id.txt` holds the spreadsheet ID of the Google Sheets containing all of the form responses
 
