@@ -13,9 +13,10 @@ pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-
 Second, you need to make sure you have all of the appropriate text files necessary to run the script.
 
 The following text files are included in this repo and do not contain privileged information:
- * `offset.txt` holds a single integer that represents the number of rows in the spreadsheet that has already been processed by this script.
+ * `offset.txt` holds a single integer that represents the number of rows in the spreadsheet that has already been processed by this script
 
 The following text files are not included in this repo because they contain privileged information, but they are still necessary to run this script:
+ * `leadership_emails.json` holds the e-mails of the team leads that are notified when someone fills out the interest form
  * `google_credentials.json` holds the client ID and private key for a service account on our Google API Console project
  * `google_sheets_id.txt` holds the spreadsheet ID of the Google Sheets containing all of the form responses
  * `mailchimp_api_key.txt` holds the Mailchimp API Key

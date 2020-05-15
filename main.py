@@ -4,6 +4,8 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 # Documentation: https://2.python-requests.org/en/master/
 import requests
+import slack_funcs
+import json
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
@@ -126,6 +128,12 @@ def main():
     if not values:
         print("No new subscribers")
     else:
+        # Get the Slack token needed to access the Slack API:
+        slack_token = slack_funcs.get_slack_token()
+        # Get the e-mails of the users we want to DM:
+        with open("leadership_emails.json", "r") as file:
+            team_lead_emails = json.loads(file.read())
+        
         # For every row we have not yet processed, add a subscriber:
         for row in values:
             add_subscriber(
@@ -135,6 +143,15 @@ def main():
                 first_name=row[1],
                 last_name=row[2],
                 phone_number=row[9]
+            )
+            
+            slack_message = f"{row[1]} {row[2]} filled out the interest form!\n\nPronouns: {row[3]}\nMajor: {row[4]}\nInterests: {row[6]}\n\nInterested in Sunrise Sips? {row[7]}\nE-mail: {row[8]}\nPhone Number: {row[9]}"
+            if len(row[10]) > 0:
+                slack_message += f"\n\nQuestions/Comments: {row[10]}"
+            slack_funcs.send_dm_to_users(
+                slack_token,
+                message=slack_message,
+                emails=team_lead_emails
             )
         
         # Update the number of rows of the spreadsheet
