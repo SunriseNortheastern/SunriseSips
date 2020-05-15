@@ -21,6 +21,7 @@ The following text files are not included in this repo because they contain priv
  * `google_sheets_id.txt` holds the spreadsheet ID of the Google Sheets containing all of the form responses
  * `mailchimp_api_key.txt` holds the Mailchimp API Key
  * `mailchimp_list_id.txt` holds the list ID for our Mailchimp audience
+ * `slack_token.txt` holds the OAuth access token for our Slack bot
 
 If you want access to the files above, join Sunrise NEU's data team and ask leadership.
 
