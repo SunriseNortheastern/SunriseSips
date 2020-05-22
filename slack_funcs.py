@@ -68,7 +68,8 @@ def find_channel_id(api_token, channel_name):
         # This is the data we will send to Slack
         # in order to browse the next page of channels:
         request_data = {
-            "token": api_token
+            "token": api_token,
+            "types": "private_channel"
         }
         # Add the cursor if it is not None:
         if cursor != None:
@@ -154,11 +155,11 @@ def post_message_in_channel(api_token, channel_name, message, username=""):
     Given a Slack channel name,
     posts a message in that channel
     under the given username (if given)
+    
+    Assumes the bot is already part of the given channel
     """
     # Get the channel ID:
     channel_id = find_channel_id(api_token, channel_name)
-    # Join the channel:
-    join_channel(api_token, channel_id)
     # Post the message in the channel:
     post_message_using_id(api_token, channel_id, message, username)
 

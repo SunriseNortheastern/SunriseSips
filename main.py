@@ -139,11 +139,13 @@ def main():
             team_lead_emails = json.loads(file.read())
             
         # Get the user IDs of all the team leads:
-        team_lead_ids = []
-        for email in team_lead_emails:
-            team_lead_ids.append(
-                slack_funcs.find_user_id(slack_token, email)
-            )
+        team_lead_ids = {}
+        for team_name, emails in team_lead_emails.items():
+            team_lead_ids[team_name] = []
+            for email in emails:
+                team_lead_ids[team_name].append(
+                    slack_funcs.find_user_id(slack_token, email)
+                )
         
         # For every row we have not yet processed, add a subscriber:
         for row in values:
@@ -161,19 +163,34 @@ def main():
 f"""{row[1]} {row[2]} filled out the interest form!
 
 Pronouns: {row[3]}
-Major: {row[4]}
-Interests: {row[6]}
+Year: {row[4]}
+Major: {row[5]}
+Interests: {{team_names}}
 
 Interested in Sunrise Sips? {row[7]}
 E-mail: {row[8]}
-Phone Number: {row[9]}"""
+Phone Number: {row[9]}
+
+Sign up to do a Sunrise Sips here: https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit"""
             if len(row[10]) > 0:
                 slack_message += f"\n\nQuestions/Comments: {row[10]}"
-                
+
+            # Get the teams/people we need to mention:
+            team_names = []
+            people_to_be_mentioned = set()
+            for team_name, ids in team_lead_ids.items():
+                if team_name in row[6]:
+                    team_names.append(team_name)
+                    people_to_be_mentioned |= set(ids)
+            # Put the team names that the user is interested in
+            # in the message:
+            slack_message = slack_message.format(
+                team_names=", ".join(team_names)
+            )
             # Prepend the mentions of each team lead to the message:
             mentions = ""
-            for id in team_lead_ids:
-                mentions += "<@"+id+">"
+            for id in people_to_be_mentioned:
+                mentions += "<@"+id+"> "
             slack_message = mentions+"\n"+slack_message
 
             # Finally, post the message:
