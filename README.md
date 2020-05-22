@@ -2,7 +2,7 @@
 
 This repo hosts a Python script which has two purposes:
  * Automatically add anyone who fill out the Sunrise Northeastern Interest Form to our Mailchimp
- * Automatically notify team leads if someone fills out the Interest Form expresses interest in their team and expresses interest in a Sunrise Sips conversation (not implemented yet)
+ * Automatically notify team leads if someone fills out the Interest Form expresses interest in their team and expresses interest in a Sunrise Sips conversation
 
 This script works by reading the responses to the Interest Form in a Google Sheets and then making the appropriate requests to the Mailchimp and Slack APIs. To run this script, you first need to install some packages from `pip` using the below terminal command:
 

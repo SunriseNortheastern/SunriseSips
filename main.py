@@ -10,6 +10,9 @@ import json
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
 
+# This is the name of the Slack channel we message to notify team leads:
+CHANNEL_NAME = "sunrisesips"
+
 """
 This is the maximum number of rows of the spreadsheet
 we are going to read in one run of this script.
@@ -24,7 +27,7 @@ this script every minute or so, and therefore we never
 want to have this script process so many responses at once
 that it takes longer than a minute to finish.
 """
-MAX_ROWS = 100
+MAX_ROWS = 20
 
 def get_mailchimp_info():
     """
@@ -130,9 +133,20 @@ def main():
     else:
         # Get the Slack token needed to access the Slack API:
         slack_token = slack_funcs.get_slack_token()
-        # Get the e-mails of the users we want to DM:
+        # Get the name of the channel we want to message:
+        with open("channel_name.txt", "r") as file:
+            channel_name = file.read()
+            
+        # Get the e-mails of the team leads:
         with open("leadership_emails.json", "r") as file:
             team_lead_emails = json.loads(file.read())
+            
+        # Get the user IDs of all the team leads:
+        team_lead_ids = []
+        for email in team_lead_emails:
+            team_lead_ids.append(
+                slack_funcs.find_user_id(slack_token, email)
+            )
         
         # For every row we have not yet processed, add a subscriber:
         for row in values:
@@ -145,13 +159,31 @@ def main():
                 phone_number=row[9]
             )
             
-            slack_message = f"{row[1]} {row[2]} filled out the interest form!\n\nPronouns: {row[3]}\nMajor: {row[4]}\nInterests: {row[6]}\n\nInterested in Sunrise Sips? {row[7]}\nE-mail: {row[8]}\nPhone Number: {row[9]}"
+            # Then, create a Slack message to notify the team leads:
+            slack_message = \
+f"""{row[1]} {row[2]} filled out the interest form!
+
+Pronouns: {row[3]}
+Major: {row[4]}
+Interests: {row[6]}
+
+Interested in Sunrise Sips? {row[7]}
+E-mail: {row[8]}
+Phone Number: {row[9]}"""
             if len(row[10]) > 0:
                 slack_message += f"\n\nQuestions/Comments: {row[10]}"
-            slack_funcs.send_dm_to_users(
+                
+            # Prepend the mentions of each team lead to the message:
+            mentions = ""
+            for id in team_lead_ids:
+                mentions += "<@"+id+">"
+            slack_message = mentions+"\n"+slack_message
+
+            # Finally, post the message:
+            slack_funcs.post_message_in_channel(
                 slack_token,
-                message=slack_message,
-                emails=team_lead_emails
+                channel_name=CHANNEL_NAME,
+                message=slack_message
             )
         
         # Update the number of rows of the spreadsheet
