@@ -133,9 +133,6 @@ def main():
     else:
         # Get the Slack token needed to access the Slack API:
         slack_token = slack_funcs.get_slack_token()
-        # Get the name of the channel we want to message:
-        with open("channel_name.txt", "r") as file:
-            channel_name = file.read()
             
         # Get the e-mails of the team leads:
         with open("leadership_emails.json", "r") as file:
