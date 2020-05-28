@@ -170,10 +170,10 @@ Interests: {{team_names}}
 Interested in Sunrise Sips? {row[7]}
 E-mail: {row[8]}
 Phone Number: {row[9]}
-
-Sign up to do a Sunrise Sips here: https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit"""
+Best Method of Contact: {row[11]}"""
             if len(row[10]) > 0:
                 slack_message += f"\n\nQuestions/Comments: {row[10]}"
+            slack_message += f"\n\nSign up to do a Sunrise Sips here: https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit"
 
             # Get the teams/people we need to mention:
             team_names = []
