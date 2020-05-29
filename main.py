@@ -7,27 +7,18 @@ import requests
 import slack_funcs
 import json
 
-# If modifying these scopes, delete the file token.pickle.
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+# These are the permissions our app needs to run:
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 # This is the name of the Slack channel we message to notify team leads:
 CHANNEL_NAME = "sunrisesips"
 
-"""
-This is the maximum number of rows of the spreadsheet
-we are going to read in one run of this script.
-
-For example, if MAX_ROWS is 10, but 20 new people have
-signed up for Sunrise Sips since this script was last run,
-then you would need to run this script twice to process
-all of the new responses.
-
-This constant exists because we are likely going to run
-this script every minute or so, and therefore we never
-want to have this script process so many responses at once
-that it takes longer than a minute to finish.
-"""
-MAX_ROWS = 20
+# This is the maximum number of rows of the spreadsheet
+# we are going to read in one run of this script.
+# Since we are planning on running the script once every minute,
+# this constant helps make sure that one run of the script
+# never takes longer than a minute.
+MAX_ROWS = 5
 
 def get_mailchimp_info():
     """
@@ -108,19 +99,22 @@ def main():
     creds, spreadsheet_id = get_google_info()
     # Initialize Google Sheets API:
     service = build("sheets", "v4", credentials=creds)
+    sheet = service.spreadsheets()
 
     # Get the number of rows of the spreadsheet
     # we have processed so far
-    # using the local "offset.txt" file.
-    # This file will be updated at the end of our script.
-    offset = None
-    with open("offset.txt", "r") as file:
-        offset = int(file.read())
+    # using the "Bot Data" sheet in the spreadsheet:
+    offset_range = "Bot Data!A1:A1"
+    offset_response = sheet.values().get(
+        spreadsheetId=spreadsheet_id,
+        range=offset_range
+    ).execute()
+    offset = int(offset_response.get("values", [])[0][0])
+        
     # Based off the offset, build the spreadsheet range we want to read:
     spreadsheet_range = f"Form Responses 1!A{offset}:V{offset+MAX_ROWS}"
 
     # Get the values from the specified range in the spreadsheet:
-    sheet = service.spreadsheets()
     result = sheet.values().get(
         spreadsheetId=spreadsheet_id,
         range=spreadsheet_range
@@ -200,10 +194,18 @@ Best Method of Contact: {row[12]}"""
                 message=slack_message
             )
         
-        # Update the number of rows of the spreadsheet
+        # Update the "Bot Data" sheet with
+        # the new number of rows of the spreadsheet
         # we have processed so far:
-        with open("offset.txt", "w") as file:
-            file.write(str(offset+len(values)))
+        sheet.values().update(
+            spreadsheetId=spreadsheet_id,
+            range=offset_range,
+            valueInputOption="USER_ENTERED",
+            body={
+                "range": offset_range,
+                "values": [[str(offset+len(values))]]
+            }
+        ).execute()
             
         print("Finished adding subscribers")
 
